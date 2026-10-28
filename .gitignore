@@ -1,0 +1,22 @@
+# Entornos virtuales y caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Certificados locales autofirmados
+_certificado_local/
+*.pem
+*.key
+*.crt
+
+# Archivos de sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs temporales
+*.log

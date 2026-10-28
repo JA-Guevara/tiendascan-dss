@@ -1,0 +1,424 @@
+<!doctype html>
+
+<html lang="es">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Inventario de botellas · Clasificador de productos</title>
+
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/logos/favicon-32x32.png">
+
+  <link rel="stylesheet" href="./css/estilos.css">
+
+</head>
+
+<body>
+
+  <header class="encabezado">
+
+    <div class="marca">
+
+      <img src="./assets/logos/LogotipoV2-Simple.png" alt="" width="48" height="48">
+
+      <div>
+
+        <h1>TiendaScan DSS · Inventario Inteligente</h1>
+
+        <p class="suave">Sistema de Soporte para la Toma de Decisiones en Tiendas y Micromercados.</p>
+
+      </div>
+
+    </div>
+
+    <div class="indicadores">
+
+      <p class="indicador"><span class="suave">En inventario</span> <strong id="totalUnidades">—</strong></p>
+
+      <p class="indicador"><span class="suave">Alertas</span> <strong id="totalAlertas">—</strong></p>
+
+      <p class="indicador"><span class="suave">Valor Stock</span> <strong id="valorTotalStock">Bs. —</strong></p>
+
+      <p id="estado" class="chip" data-tipo="cargando" role="status" aria-live="polite">Cargando…</p>
+
+    </div>
+
+  </header>
+
+
+
+  <main class="rejilla">
+
+    <!-- 1. Escanear -->
+
+    <section class="panel" aria-labelledby="t-escanear">
+
+      <header class="panel-cabecera">
+
+        <h2 id="t-escanear">Entrada</h2>
+
+        <div class="segmentado" role="group" aria-label="Fuente de la imagen">
+
+          <button type="button" id="modoImagen" aria-pressed="true">Imagen</button>
+
+          <button type="button" id="modoCamara" aria-pressed="false">Cámara</button>
+
+        </div>
+
+      </header>
+
+
+
+      <div id="visor" class="visor" tabindex="0" aria-label="Visor. Puedes arrastrar aquí una foto.">
+
+        <video id="video" playsinline muted hidden></video>
+
+        <img id="imagen" alt="Foto seleccionada" hidden>
+
+        <canvas id="cajasDeteccion" hidden aria-label="Botellas detectadas con recuadros"></canvas>
+
+        <div id="vacio" class="visor-vacio">
+
+          <p><strong>Apunta la cámara a una botella</strong></p>
+
+          <p class="suave">o arrastra aquí una foto</p>
+
+        </div>
+
+      </div>
+
+      <input type="file" id="archivo" accept="image/*" hidden>
+
+
+
+      <div class="acciones">
+
+        <button type="button" class="btn btn-primario" id="btnReconocer" disabled>Detectar botellas</button>
+
+        <button type="button" class="btn" id="btnEnVivo" aria-pressed="false" disabled>En vivo</button>
+
+        <button type="button" class="btn" id="btnFuente" disabled>Elegir foto</button>
+
+        <button type="button" class="btn" id="btnLimpiar">Limpiar</button>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 2. Producto reconocido -->
+
+    <section class="panel" aria-labelledby="t-reconocido">
+
+      <header class="panel-cabecera">
+
+        <h2 id="t-reconocido">Botellas detectadas</h2>
+
+        <span id="tiempo" class="suave"></span>
+
+      </header>
+
+
+
+      <div id="reconocido" class="reconocido" data-nivel="vacio" aria-live="polite">
+
+        <span id="recColor" class="muestra" aria-hidden="true"></span>
+
+        <div class="reconocido-texto">
+
+          <p id="recNombre" class="rec-nombre">Ningún producto</p>
+
+          <p id="recDetalle" class="suave">Apunta la cámara a una botella o elige una foto.</p>
+
+        </div>
+
+      </div>
+
+
+
+      <div class="registro-deteccion">
+
+        <p id="conteoDetectado" role="status">Carga una foto o activa la cámara.</p>
+
+        <label>Producto del inventario<select id="productoDetectado"><option value="">Selecciona un producto</option></select></label>
+
+        <p id="estadoCoincidencia" class="suave" role="status">Se comparará la captura con las fotos guardadas.</p>
+
+        <p id="lecturaEtiqueta" class="suave" role="status"></p>
+
+        <div id="candidatosProducto" class="chips"></div>
+
+        <button id="usarSugerencia" type="button" class="btn" hidden>Usar producto sugerido</button>
+
+        <button id="crearDetectado" type="button" class="btn">+ Registrar producto nuevo</button>
+
+        <label>Unidades a ingresar<input id="cantidadDetectada" type="number" min="1" step="1" value="1"></label>
+
+        <p class="suave">El modelo identifica el producto usando tus referencias. Revisa la presentación y confirma la cantidad. Si hay productos diferentes, sepáralos en tomas.</p>
+
+        <label class="confirmacion-manual"><input type="checkbox" id="confirmarManual"> La botella no fue detectada; confirmo que deseo ingresar la cantidad manualmente.</label>
+
+        <button id="confirmarDeteccion" type="button" class="btn btn-primario" disabled>Confirmar entrada</button>
+
+        <button id="nuevaToma" type="button" class="btn">Nueva toma</button>
+
+      </div>
+
+      <div id="stock" class="stock" data-nivel="vacio">
+
+        <p class="suave">En inventario</p>
+
+        <p class="stock-cifra"><span id="recStock">—</span> <span class="suave">unidades</span></p>
+
+        <p id="recEstado" class="insignia" data-nivel="vacio">—</p>
+
+        <p id="recSugerencia" class="sugerencia" hidden></p>
+
+      </div>
+
+
+
+      <div class="acciones">
+
+        <button type="button" class="btn btn-venta" id="btnSalida" disabled>− Venta</button>
+
+        <button type="button" class="btn btn-entrada" id="btnEntrada" disabled>+ Entrada</button>
+
+      </div>
+
+
+
+      <ul id="barras" class="barras" aria-label="Probabilidad por clase"></ul>
+
+
+
+      <div class="detalle-modelo" id="detalleModelo" hidden>
+
+        <figure><canvas id="vistaModelo" width="100" height="100"></canvas><figcaption class="suave">Lo que ve el modelo</figcaption></figure>
+
+        <dl id="datosModelo"></dl>
+
+      </div>
+
+      <div class="historial-reconocimiento">
+
+        <h3>Últimos reconocimientos</h3>
+
+        <p id="historialVacio" class="suave">Aquí aparecerán las botellas reconocidas.</p>
+
+        <ul id="historialReconocimientos" class="historial-lista"></ul>
+
+      </div>
+
+      <div id="simulador" class="simulador" hidden>
+
+        <p class="suave"><strong>Modo demostración.</strong> Elige qué producto «ve» la cámara:</p>
+
+        <div id="simuladorBotones" class="chips"></div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- 3. Inventario -->
+
+    <section class="panel" aria-labelledby="t-inventario">
+
+      <header class="panel-cabecera">
+
+        <h2 id="t-inventario">Inventario</h2>
+
+        <button type="button" class="btn btn-primario" id="agregarProducto" disabled>+ Agregar botella</button>
+
+      </header>
+
+      <p class="suave">Identificación por imagen y lectura de etiqueta. Revisa la marca y presentación antes de confirmar el ingreso.</p>
+
+      <ul id="tarjetas" class="tarjetas"></ul>
+
+    </section>
+
+
+
+    <!-- 4. Movimientos -->
+
+    <section class="panel" aria-labelledby="t-movimientos">
+
+      <header class="panel-cabecera">
+
+        <h2 id="t-movimientos">Movimientos</h2>
+
+        <span id="cantidadMovimientos" class="suave"></span>
+
+      </header>
+
+      <div class="tabla-contenedor">
+
+        <table class="tabla">
+
+          <thead>
+
+            <tr><th scope="col">Hora</th><th scope="col">Producto</th><th scope="col">Tipo</th><th scope="col" class="num">Cant.</th><th scope="col" class="num">Stock</th><th scope="col">Origen</th></tr>
+
+          </thead>
+
+          <tbody id="filasMovimientos"></tbody>
+
+        </table>
+
+      </div>
+
+      <div class="acciones acciones-4">
+
+        <button type="button" class="btn" id="btnDeshacer" disabled>Deshacer</button>
+
+        <button type="button" class="btn" id="btnCsv">CSV</button>
+
+        <button type="button" class="btn" id="btnJson">JSON</button>
+
+        <button type="button" class="btn btn-peligro" id="btnReiniciar">Reiniciar</button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <dialog id="editorProducto" aria-labelledby="tituloEditor">
+
+    <form id="formProducto">
+
+      <h2 id="tituloEditor">Agregar botella</h2>
+
+      <p class="suave">El modelo compara la captura con las fotos de referencia. Revisa la marca y presentación antes de confirmar.</p>
+
+      <label>Nombre<input name="nombre" required maxlength="80" autocomplete="off"></label>
+
+      <label>Marca (opcional)<input name="marca" maxlength="60" placeholder="Ej. Vital"></label>
+
+      <label>Código de barras o SKU (opcional)<input name="codigo" maxlength="80" placeholder="Escribe el código de la etiqueta"></label>
+
+      <label>Presentación<input name="presentacion" maxlength="40" placeholder="Ej. 990 ml"></label>
+
+      <div class="campos-stock">
+
+        <label>Stock inicial<input name="stockInicial" type="number" min="0" step="1" value="0" required></label>
+
+        <label>Mínimo<input name="stockMinimo" type="number" min="0" step="1" value="0" required></label>
+
+        <label>Objetivo<input name="stockObjetivo" type="number" min="0" step="1" value="12" required></label>
+
+      </div>
+      <div class="campos-stock">
+        <label>Costo de compra (Bs.)<input name="precioCompra" type="number" min="0" step="0.5" value="0"></label>
+        <label>Precio de venta (Bs.)<input name="precioVenta" type="number" min="0" step="0.5" value="0"></label>
+      </div>
+
+      <p id="notaStock" class="suave" hidden>El stock inicial está bloqueado porque hay movimientos. Ajusta existencias con ventas y entradas.</p>
+
+      <label>Foto del producto<input name="foto" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
+
+      <p class="suave">Se captura una foto automáticamente y se proponen los datos que se hayan podido leer. Revisa nombre, marca y contenido antes de guardar.</p>
+
+      <img id="fotoProducto" class="producto-foto" alt="Vista previa de la botella" hidden>
+
+      <button type="button" class="btn btn-mini" id="quitarFoto">Quitar todas las fotos</button>
+
+      <button type="button" class="btn" id="capturarReferencia">Añadir captura actual como referencia</button>
+
+      <p id="cantidadFotos" class="suave"></p>
+
+      <p id="errorProducto" role="alert"></p>
+
+      <div class="acciones"><button type="button" class="btn" id="cancelarProducto">Cancelar</button><button type="submit" class="btn btn-primario">Guardar producto</button></div>
+
+    </form>
+
+  </dialog>
+
+  <footer class="pie suave">El inventario se guarda en este navegador. Exporta una copia para conservar los movimientos.<br>Sistemas soporte para la toma de decisiones · UAGRM</footer>
+
+
+
+  <template id="tplBarra">
+
+    <li class="barra">
+
+      <span class="barra-nombre"></span>
+
+      <span class="barra-pista"><span class="barra-relleno"></span></span>
+
+      <span class="barra-valor">0 %</span>
+
+    </li>
+
+  </template>
+
+
+
+  <template id="tplTarjeta">
+
+    <li class="tarjeta" data-nivel="ok">
+
+      <div class="tarjeta-cabecera">
+
+        <span class="muestra" aria-hidden="true"></span>
+
+        <div>
+
+          <p class="tarjeta-nombre"></p>
+
+          <p class="tarjeta-presentacion suave"></p>
+
+        </div>
+
+      </div>
+
+      <img class="producto-foto" alt="" hidden>
+
+      <p class="tarjeta-reconocimiento suave"></p>
+
+      <button type="button" class="btn btn-mini" data-accion="editar">Editar producto</button>
+
+      <p class="tarjeta-precios suave"></p>
+
+      <p class="tarjeta-stock"><span class="tarjeta-cifra"></span> <span class="suave">u.</span></p>
+
+      <span class="nivel" aria-hidden="true"><span class="nivel-relleno"></span></span>
+
+      <p class="tarjeta-meta suave"></p>
+
+      <p class="insignia"></p>
+
+      <div class="tarjeta-acciones">
+
+        <button type="button" class="btn btn-mini" data-accion="salida">− 1</button>
+
+        <button type="button" class="btn btn-mini" data-accion="entrada">+ 1</button>
+
+      </div>
+
+    </li>
+
+  </template>
+
+
+
+  <!-- Script clásico: avisa si la página se abrió con doble clic (los módulos no cargan en file://) -->
+
+  <script src="./js/protocolo.js"></script>
+
+  <script type="module" src="./js/main.js"></script>
+
+</body>
+
+</html>
+

@@ -1,0 +1,35 @@
+{
+  "modelo": "MobileNet V1 1.0 224, ImageNet",
+  "fuente": "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json",
+  "capa": "conv_pw_13_relu",
+  "agrupacion": "promedio espacial",
+  "dimensiones": 1024,
+  "entrada": {
+    "ancho": 224,
+    "alto": 224,
+    "canales": 3,
+    "normalizacion": "valor/127.5 - 1"
+  },
+  "comparacion": "Características MobileNet del envase y de la etiqueta, más histograma de color de la etiqueta",
+  "nota": "Calibración inicial con dos imágenes Sprite y dos controles. No representa probabilidad de acierto ni valida todas las marcas/volúmenes.",
+  "pesos": {
+    "envase": 0.3,
+    "etiqueta": 0.55,
+    "color": 0.15
+  },
+  "umbralCombinado": 0.8,
+  "margenEntreProductos": 0.08,
+  "minimosConEtiqueta": {
+    "envase": 0.72,
+    "etiqueta": 0.78,
+    "color": 0.65
+  },
+  "umbralSinEtiqueta": 0.95,
+  "preprocesamientoReferencias": "Se comparan original y recorte, conservando ambas variantes.",
+  "prioridadIdentidad": {
+    "envaseMinimo": 0.985,
+    "etiquetaMinima": 0.97,
+    "pixelesMinimo": 0.97,
+    "duplicados": "Requieren selección explícita."
+  }
+}

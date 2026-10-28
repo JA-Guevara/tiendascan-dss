@@ -1,0 +1,5 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><title>Prueba técnica del lector local</title><body><h1>Prueba técnica del lector local</h1><p>Etiqueta sintética: LIMONIA 990 ml. No utiliza fotografías del usuario.</p><canvas id="imagen" width="500" height="500"></canvas><button id="probar">Probar lectura local</button><pre id="resultado" role="status">Pendiente</pre><script type="module">
+import {leerEtiqueta} from '../js/lector-etiqueta.js';
+const canvas=document.getElementById('imagen'),ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,500,500);ctx.fillStyle='#12803c';ctx.fillRect(20,170,460,140);ctx.fillStyle='white';ctx.font='bold 38px Arial';ctx.fillText('LIMONIA 990 ml',70,250);
+document.getElementById('probar').onclick=async()=>{document.getElementById('resultado').textContent='Leyendo…';try{const r=await leerEtiqueta(canvas.toDataURL());document.getElementById('resultado').textContent=JSON.stringify(r);}catch(e){document.getElementById('resultado').textContent='Error: '+e.message;}};
+</script></body></html>

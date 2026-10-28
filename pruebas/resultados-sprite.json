@@ -1,0 +1,25 @@
+{
+  "referencia": "sprite 500 ml.webp",
+  "referenciasPorProducto": 1,
+  "casos": [
+    {
+      "consulta": "sprite-pet.webp",
+      "puntaje": 0.8206760703,
+      "compatible": true,
+      "coincidencia": true
+    },
+    {
+      "consulta": "vital.webp",
+      "puntaje": 0.5707226127,
+      "compatible": false,
+      "coincidencia": false
+    },
+    {
+      "consulta": "bottle.jpg",
+      "puntaje": 0.5284141567,
+      "compatible": false,
+      "coincidencia": false
+    }
+  ],
+  "limites": "Prueba local de modelos con imágenes reales y recortes equivalentes. No es una medición de precisión general ni una prueba visual en navegador."
+}

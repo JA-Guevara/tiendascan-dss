@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "descripcion": "Catálogo del inventario para tiendas y micromercados (SmartStock DSS).",
+  "productos": [
+    {
+      "id": "coca-cola-500",
+      "nombre": "Coca-Cola",
+      "presentacion": "500 ml",
+      "categoria": "Bebidas",
+      "marca": "Coca-Cola",
+      "precioCompra": 5.00,
+      "precioVenta": 7.00,
+      "clase": "coca_cola_500",
+      "color": "#d62828",
+      "stockInicial": 24,
+      "stockMinimo": 8,
+      "stockObjetivo": 36
+    },
+    {
+      "id": "vital-600",
+      "nombre": "Agua Vital",
+      "presentacion": "600 ml",
+      "categoria": "Aguas",
+      "marca": "Vital",
+      "precioCompra": 3.00,
+      "precioVenta": 5.00,
+      "clase": "vital_600",
+      "color": "#0e9aa7",
+      "stockInicial": 14,
+      "stockMinimo": 10,
+      "stockObjetivo": 30
+    },
+    {
+      "id": "pacena-710",
+      "nombre": "Cerveza Paceña",
+      "presentacion": "710 ml",
+      "categoria": "Bebidas",
+      "marca": "Paceña",
+      "precioCompra": 11.00,
+      "precioVenta": 14.00,
+      "clase": "pacena_710",
+      "color": "#b8860b",
+      "stockInicial": 18,
+      "stockMinimo": 6,
+      "stockObjetivo": 24
+    },
+    {
+      "id": "fino-900",
+      "nombre": "Aceite Fino",
+      "presentacion": "900 ml",
+      "categoria": "Abarrotes",
+      "marca": "Fino",
+      "precioCompra": 12.50,
+      "precioVenta": 15.00,
+      "clase": "fino_900",
+      "color": "#eab308",
+      "stockInicial": 10,
+      "stockMinimo": 5,
+      "stockObjetivo": 20
+    }
+  ]
+}

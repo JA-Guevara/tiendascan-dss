@@ -1,0 +1,3 @@
+# TiendaScan DSS - Requerimientos de entorno
+# El servidor utiliza la biblioteca estándar de Python (http.server, pathlib, os, sys).
+# No requiere paquetes pesados en pip, garantizando despliegue ultrarrápido en Railway.
