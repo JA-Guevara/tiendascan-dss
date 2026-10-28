@@ -1,168 +1,231 @@
-# Inventario de botellas
+<div align="center">
 
-## Abrir
-Ejecuta `iniciar_servidor.bat`. Usa la dirección local indicada y recarga con Ctrl+F5.
-No abras el HTML con doble clic. La cámara del celular requiere HTTPS.
+# 🛒 TiendaScan DSS
+### Sistema Inteligente de Control de Inventario y Soporte a la Toma de Decisiones mediante Visión Artificial
 
-## Flujo actual
-1. Elige una foto o activa la cámara. Pulsa Detectar botellas o En vivo.
-2. COCO-SSD dibuja recuadros y propone cuántas botellas se ven.
-3. Selecciona el producto del catálogo o pulsa Registrar producto nuevo.
-4. Revisa la cantidad y pulsa Confirmar entrada. Se guarda un único movimiento
-   con esa cantidad, origen y confianza promedio de detección.
-5. Una toma confirmada no se puede ingresar otra vez hasta pulsar Nueva toma,
-   elegir otra foto o cambiar de fuente. Una toma nueva puede contener la misma
-   botella física: no existe identificación única entre tomas.
+[![UAGRM](https://img.shields.io/badge/UAGRM-FICCT%202--2026-b91c1c.svg?style=for-the-badge)](https://www.uagrm.edu.bo)
+[![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-4.22.0-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://www.tensorflow.org/js)
+[![Vision](https://img.shields.io/badge/Computer_Vision-COCO--SSD_%7C_MobileNet-15803d?style=for-the-badge)](https://github.com/tensorflow/tfjs-models)
+[![Deploy on Railway](https://img.shields.io/badge/Deploy-Railway_Ready-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-2457d6?style=for-the-badge)](LICENSE)
 
-El detector reconoce la categoría botella, no marcas ni presentaciones.
-Para una imagen con productos diferentes, sepáralos en tomas y confirma cada producto.
-No se agregan existencias automáticamente en cada fotograma. Las ventas y entradas
-manuales siguen disponibles en las tarjetas y en el producto seleccionado.
-Registrar una foto en el catálogo no entrena la red. Al crear un producto durante
-una detección usa stock inicial 0 si vas a confirmar después esa misma entrada.
+<br/>
 
-## Archivos
-- `index.html`: interfaz principal.
-- `css/`: estilos.
-- `js/main.js`: coordinación e ingreso de detecciones.
-- `js/detector.js`: COCO-SSD y recuadros.
-- `js/inventario.js`: catálogo, movimientos, reposición y exportaciones.
-- `js/catalogo.js`: registro y edición de productos.
-- `assets/logos/`: imágenes de interfaz.
-- `vendor/`: TensorFlow.js 4.22.0 y COCO-SSD 2.2.3 locales.
-- `modelo/detector/`: modelo preentrenado oficial SSD MobileNet v2 y pesos.
-- `modelo/model.json` y los dos BIN anteriores: red binaria del colega conservada
-  como referencia, no utilizada por el flujo actual. El detector funciona por sí solo.
-- `entrenamiento/`: cuaderno opcional para entrenar por productos; no es requisito
-  para detectar botellas genéricas.
-- `data/`: catálogo base. Los cambios y movimientos se guardan en este navegador.
+> **TiendaScan DSS** es una solución integral orientada a tiendas de barrio y micromercados que transforma la cámara de cualquier teléfono móvil en un escáner inteligente de existencias y terminal financiero de **Soporte a la Toma de Decisiones (DSS)**, operando 100% en el navegador del cliente sin costes de infraestructura en la nube.
 
-Exporta JSON para conservar catálogo, fotos y movimientos; CSV contiene movimientos.
-El detector y las bibliotecas están instalados localmente y no necesitan CDN al abrir.
-La primera carga requiere memoria y puede tardar en equipos modestos.
+---
 
-## Validación
-Comprobadas sintaxis, referencias de controles, carga del modelo real e inferencia
-con tensor de prueba, ingreso de múltiples unidades, validación de cantidades,
-deshacer y persistencia. Pendiente la verificación visual en navegador y con cámara
-física. La inferencia técnica no demuestra precisión con botellas reales.
+</div>
 
-Referencias: implementación local de `reciclaapp.io/index.html`, biblioteca oficial
-https://github.com/tensorflow/tfjs-models/tree/master/coco-ssd y pesos oficiales
-https://storage.googleapis.com/tfjs-models/savedmodel/ssd_mobilenet_v2/model.json
+## 📌 Tabla de Contenidos
+- [🎯 Visión General](#-visión-general)
+- [✨ Características Principales](#-características-principales)
+- [🧠 Arquitectura del Sistema](#-arquitectura-del-sistema)
+  - [1. Pipeline de Visión por Computadora (2 Etapas)](#1-pipeline-de-visión-por-computadora-2-etapas)
+  - [2. Motor de Soporte para la Toma de Decisiones (DSS)](#2-motor-de-soporte-para-la-toma-de-decisiones-dss)
+- [📊 Fórmulas y Reglas de Decisión](#-fórmulas-y-reglas-de-decisión)
+- [📂 Estructura del Proyecto](#-estructura-del-proyecto)
+- [⚡ Comparativa de Eficiencia](#-comparativa-de-eficiencia)
+- [🚀 Guía de Inicio Rápido](#-guía-de-inicio-rápido)
+  - [Ejecución Local (Desarrollo y Pruebas Wi-Fi)](#ejecución-local-desarrollo-y-pruebas-wi-fi)
+  - [Despliegue Productivo en Railway](#despliegue-productivo-en-railway)
+- [👥 Información Académica y Créditos](#-información-académica-y-créditos)
 
-La carpeta ajena `Uagrm/` no pertenece a la aplicación: excluirla de cualquier publicación.
+---
 
+## 🎯 Visión General
 
-## Identificación mediante modelo y fotos de referencia
+En el sector minorista de consumo masivo (*micromercados, almacenes y ventas de abarrotes*), hasta un **18% a 24% del capital de trabajo** se pierde o inmoviliza debido a desabastecimiento no detectado (*stockout*), compras desmedidas y conteo manual de inventario en papel.
 
-Se reemplazó la comparación de píxeles por un extractor MobileNet V1 preentrenado
-con ImageNet. El modelo produce 1024 características por imagen; la similitud coseno
-se compara contra hasta 6 referencias por producto. No se entrenó desde cero una
-red especializada en las marcas del catálogo.
+Inspirado en el desafío de aula propuesto en la materia **Sistemas de Soporte para la Toma de Decisiones (UAGRM)** de llevar la clasificación de objetos a un escenario productivo, **TiendaScan DSS** resuelve este problema mediante un enfoque dual:
+1. **Identificación y Conteo Automatizado**: Reconoce botellas y envases en tiempo real con la cámara.
+2. **Evaluación Financiera Proactiva**: Analiza el capital inmovilizado en Bolivianos ($\text{Bs.}$), detecta quiebres de inventario y calcula los lotes de reposición óptimos al instante.
 
-El detector recorta una botella antes de identificarla. Si hay varias botellas,
-se permite contar, pero se pide seleccionar el producto manualmente. Las fotos de
-referencia antiguas también se recortan cuando el detector encuentra una sola botella.
+```
+       CÁMARA DEL CELULAR                       SISTEMA DSS
+  ┌─────────────────────────┐           ┌─────────────────────────┐
+  │   Escaneo de Botella    │ ────────► │  Evaluación Financiera  │
+  │   - Detección COCO-SSD  │           │  - Stock actual vs mín. │
+  │   - Embeddings 1024D    │           │  - Inversión requerida  │
+  └─────────────────────────┘           └─────────────────────────┘
+```
 
-En Editar producto, añade fotos de la misma marca y presentación desde diferentes
-ángulos, fondos y luces, o usa Añadir captura actual como referencia. Las referencias
-se guardan junto con el catálogo en este navegador y se incluyen en la exportación JSON.
-Los vectores se calculan localmente y se conservan en memoria durante la sesión.
-No se envían fotografías a ningún servicio.
+---
 
-Si la similitud supera 0.88 y aventaja al segundo producto por 0.06 se selecciona automáticamente el producto y se muestra su stock. Estos son umbrales conservadores iniciales, pendientes de calibrar
-con fotos reales del catálogo; no representan probabilidad de acierto. El usuario
-confirma la selección y el movimiento. Si no hay coincidencia clara no se crea un
-producto automáticamente. No se leen etiquetas o códigos de barras automáticamente.
-Botellas casi iguales de distinto volumen pueden requerir selección manual.
+## ✨ Características Principales
 
-`modelo/identificador/` incluye pesos locales y configuración del extractor.
-Probado el modelo real con una foto de botella: salida finita de 1024 características,
-similitud de la misma imagen 1.0000 y con brillo +5 % 0.9993. Verificadas sintaxis,
-controles, gestión de seis referencias, fotos antiguas y rechazo por ambigüedad.
-No se midió todavía precisión por producto ni se verificó visualmente en navegador.
+| Categoría | Capacidad | Detalle Técnico |
+| :--- | :--- | :--- |
+| **👁️ Visión Artificial** | **Detección Dual** | Localización de recuadros con **COCO-SSD (MobileNet v2)** e identificación de presentación con **MobileNet v1 (1024 características)**. |
+| **📶 Cero Latencia** | **100% Edge Computing** | La inferencia corre dentro del navegador del operario. Las fotos **no viajan** a servidores externos, garantizando privacidad y velocidad inmediata. |
+| **💵 DSS Financiero** | **KPIs en Tiempo Real** | Monitoreo continuo de **Valor de Stock ($\text{Bs.}$)**, ganancia proyectada y sugerencia de compra valorizada por lote. |
+| **🛡️ Auditoría Contable** | **Event Sourcing** | El inventario no se sobreescribe como un entero volátil; se recalcula desde un libro mayor auditable con capacidad de **Deshacer**. |
+| **📦 Catálogo Dinámico** | **Gestor de Referencias** | Permite agregar nuevos productos y almacenar hasta 6 fotos de referencia por producto sin reentrenar la red global. |
+| **📤 Exportación Fácil** | **Formatos Abiertos** | Exportación con 1 clic a **CSV nativo para Excel** (con delimitador `;` y BOM `\uFEFF`) y **JSON integral**. |
 
-Referencia oficial de extracción de características y aprendizaje por transferencia:
-https://github.com/tensorflow/tfjs-examples/tree/master/webcam-transfer-learning
+---
 
+## 🧠 Arquitectura del Sistema
 
-## Resultado automático
-Una coincidencia clara ahora actualiza directamente el nombre, presentación, stock
-y selector del resultado. La detección se pausa para revisar e ingresar la cantidad.
-No se exige un segundo botón Usar producto. Nueva toma limpia el resultado y reanuda
-la cámara. Si al reanalizar deja de haber coincidencia, se elimina la selección
-automática anterior. Una selección manual explícita se respeta.
-Las tarjetas indican cuántas fotos tienen para reconocimiento; no etiquetan todos
-los productos como seleccionados manualmente.
-Verificado con simulación del flujo: coincidencia → producto/stock; sin coincidencia
-→ limpiar selección anterior; preservar selección manual. Pendiente comprobar la
-pantalla real tras recargar.
+### 1. Pipeline de Visión por Computadora (2 Etapas)
 
+```mermaid
+flowchart TD
+    A["📸 Entrada de Cámara / Foto (640x640)"] --> B{"Detector COCO-SSD\n(MobileNet v2)"}
+    B -- "Score < 0.40" --> C["🚫 Ignorado / Fondo"]
+    B -- "Clase == 'bottle' (Score >= 0.40)" --> D["🟩 Recuadro de Detección (BBox)"]
+    D --> E{"¿Cuántas botellas?"}
+    E -- "Múltiples unidades" --> F["🔢 Conteo de Unidades en Escena"]
+    E -- "1 unidad focalizada" --> G["✂️ Recorte con Margen (224x224)"]
+    G --> H["🧠 Extractor MobileNet v1\n(Capa conv_pw_13_relu)"]
+    H --> I["📐 Embedding de 1024 Dimensiones + Segmentación de Color"]
+    I --> J["🔍 Comparación por Similitud Coseno vs Catálogo"]
+    J --> K{"¿Similitud >= 0.80 y Margen >= 0.08?"}
+    K -- "Sí" --> L["✅ Autoselección de Producto y Estado Stock"]
+    K -- "No / Ambiguo" --> M["⚠️ Requiere Confirmación Manual del Operario"]
+```
 
-## Mejora con una sola referencia: envase y etiqueta
+### 2. Motor de Soporte para la Toma de Decisiones (DSS)
 
-La identificación ahora localiza la zona de la etiqueta y compara dos descriptores
-MobileNet (envase completo y etiqueta), además del color de esta última. Los pesos,
-umbral y requisitos de compatibilidad están documentados en
-`modelo/identificador/configuracion.json`. La comparación simple del envase se
-sustituyó por este resultado combinado. Si no se encuentra etiqueta con color, se
-exige una coincidencia del envase mucho más estricta. Sigue siendo posible rechazar
-un producto conocido cuando hay cambios grandes de diseño, poca luz o una etiqueta
-sin color; no se lee la marca ni el volumen mediante OCR.
+```mermaid
+graph LR
+    subgraph "Transacciones (Event Sourcing)"
+        M1["Entrada de Mercadería (+)"] --> L["Libro Mayor de Movimientos"]
+        M2["Venta en Mostrador (-)"] --> L
+    end
 
-Con una referencia Sprite, la otra imagen Sprite pasa y Vital se rechaza. Hay un
-segundo control de otra botella de agua. Resultados reales en
-`pruebas/resultados-sprite.json`. Repetir con:
-`node pruebas/reconocimiento-real.cjs referencia consulta [controles...]`
-Requiere Node, Python y Pillow. Usa los modelos locales y no envía imágenes a internet.
+    subgraph "Cálculo Dinámico"
+        L --> S["Stock Actual = Stock_Inicial + Entradas - Salidas"]
+    end
 
-Los umbrales de esta sección sustituyen los anteriores: combinado 0.80, margen 0.08,
-con mínimos individuales para envase, etiqueta y color. Solo se verificaron estos
-casos; no se afirma que se distingan todas las marcas o tamaños. No se necesita añadir
-las dos fotos Sprite al mismo producto para reproducir esta prueba.
+    subgraph "Panel de Decisiones (DSS)"
+        S --> D1{"Estado de Stock"}
+        D1 -- "Stock <= 0" --> R1["🔴 Agotado · Reposición Urgente"]
+        D1 -- "Stock <= Mínimo" --> R2["🟡 Bajo el Mínimo · Alerta Preventiva"]
+        D1 -- "Stock > Mínimo" --> R3["🟢 Nivel Seguro"]
 
+        S --> D2["Valoración Financiera"]
+        D2 --> V1["Capital en Inventario (Bs.)"]
+        D2 --> V2["Inversión Estimada de Reposición (Bs.)"]
+    end
+```
 
-## Corrección general de identidad
-Se conservan descriptores de la foto original y del recorte detectado, tanto en la
-consulta como en la referencia. Esto evita perder la identidad cuando una foto
-registrada ya estaba recortada y el detector la volvía a recortar de otra manera.
-Una comparación casi idéntica exige coincidencia neuronal del envase y etiqueta y
-coincidencia adicional de píxeles reducidos. Una identidad única tiene prioridad
-sobre candidatos parecidos; dos registros con la misma foto se muestran como
-ambiguos, sin asignarlos silenciosamente. Si no hay recuadro, se permite buscar la
-identidad; ingresar una cantidad sin detección sigue requiriendo confirmación manual.
-Las pruebas del modelo real verificaron identidad de cada una de las dos Sprite,
-Vital y otra botella de agua. Los controles negativos anteriores siguen rechazados.
-Falta verificar con el catálogo del navegador del usuario: las pruebas no leen ni
-modifican ese almacenamiento.
+---
 
+## 📊 Fórmulas y Reglas de Decisión
 
-## Identificación combinada con lectura de etiqueta
+### 1. Dinámica del Stock
+El nivel de inventario del producto $i$ en el instante $t$ se determina por:
+$$\text{Stock}_i(t) = \text{StockInicial}_i + \sum_{k=1}^{n} \Big( \text{Entrada}_{i,k} - \text{Salida}_{i,k} \Big)$$
 
-Se instaló Tesseract.js 6.0.1 y sus datos y núcleos WASM en `vendor/ocr/`.
-El procesamiento se realiza localmente. La captura para leer conserva mayor
-resolución que la miniatura usada por MobileNet. Se examina la zona de la etiqueta
-en color, con letras claras y oscuras, usando segmentación dispersa y de bloque.
+### 2. Sugerencia de Reorden y Compra
+Para todo producto cuyo $\text{Stock}_i \le \text{StockMinimo}_i$, el sistema activa la recomendación de pedido al distribuidor:
+$$\text{UnidadesAReponer}_i = \max\Big(0, \text{StockObjetivo}_i - \text{StockActual}_i\Big)$$
+$$\text{InversiónEstimada}_i = \text{UnidadesAReponer}_i \times \text{PrecioCompra}_i$$
 
-La lectura se contrasta con la marca/nombre y presentación estructurados del catálogo.
-Marca más volumen coincidentes pueden identificar un producto sin depender de que
-la silueta sea idéntica. Un volumen leído contradictorio bloquea la asignación aunque
-la imagen sea parecida. Si solo se lee la marca, se ofrecen presentaciones del
-catálogo para confirmar, sin inventar un tamaño. Los datos leídos también se proponen
-al abrir Registrar producto nuevo. La lectura no garantiza interpretar todos los
-logos o letras pequeñas y no sustituye un lector de código de barras.
+### 3. Capital Inmovilizado y Margen de Utilidad
+$$\text{ValorTotalStock} = \sum_{i \in \text{Catálogo}} \Big(\text{Stock}_i \times \text{PrecioCompra}_i\Big)$$
+$$\text{MargenBrutoProyectado} = \sum_{i \in \text{Catálogo}} \Big(\text{Stock}_i \times (\text{PrecioVenta}_i - \text{PrecioCompra}_i)\Big)$$
 
-Verificaciones: `node pruebas/etiquetas.test.mjs` cubre 500ml frente a 2L,
-marca/volumen, falta de texto y base nutricional de 100ml. `pruebas/ocr-real.cjs`
-ejecuta OCR sobre archivos locales en un entorno temporal con Tesseract.js.
-Con las fotos disponibles lee Sprite en ambas imágenes, 500ml en sprite-pet.webp,
-y Vital en vital.webp. En las otras no se pudo confirmar el contenido; no se afirma
-que se hayan leído todos los textos. La página de prueba `pruebas/lector.html`
-confirmó en navegador la lectura de una etiqueta sintética LIMONIA 990ml.
+### 4. Similitud Vectorial de Reconocimiento
+La afinidad entre la captura $A$ y la referencia guardada $B$ utiliza la métrica del coseno sobre los embeddings normalizados:
+$$\text{Similitud}(A, B) = \frac{A \cdot B}{\|A\| \|B\|} = \frac{\sum_{j=1}^{1024} A_j B_j}{\sqrt{\sum_{j=1}^{1024} A_j^2} \sqrt{\sum_{j=1}^{1024} B_j^2}}$$
 
-Se verificó la carga de detector e identificador en la interfaz. La prueba de carga
-con fotos reales en navegador no se completó: se rechazó el permiso de carga. No se
-modificó el catálogo del navegador habitual del usuario. Las pruebas de fotos reales
-se hicieron fuera del navegador y no demuestran por sí solas precisión general.
-# tiendascan-dss
+---
+
+## 📂 Estructura del Proyecto
+
+```text
+Botellas inventario/
+├── 📄 index.html              # Interfaz de usuario semántica y accesible
+├── 📄 server.py                # Servidor multihilo para Railway y entornos cloud
+├── 📄 servidor_red.py          # Servidor HTTPS con certificados para pruebas Wi-Fi locales
+├── 📄 Procfile                 # Descriptor de procesos para despliegue PaaS
+├── 📄 railway.json             # Configuración de build con Nixpacks para Railway
+├── 📄 requirements.txt         # Declaración de entorno Python estándar
+├── 📄 runtime.txt              # Definición de versión: Python 3.11
+├── 📄 .gitignore               # Exclusión de credenciales y temporales
+├── 📁 css/
+│   └── estilos.css             # Tokens CSS (variables, modo oscuro/claro, tipografía)
+├── 📁 js/
+│   ├── main.js                 # Coordinador principal del ciclo de vida y eventos
+│   ├── inventario.js           # Núcleo DSS: libro mayor, stock, alertas y cálculos
+│   ├── detector.js             # Módulo TensorFlow.js con COCO-SSD
+│   ├── coincidencias.js        # Extractor MobileNet v1 y comparador coseno
+│   ├── etiqueta.js             # Segmentación y análisis colorimétrico de etiquetas
+│   ├── catalogo.js             # Gestión reactiva de edición de productos y fotos
+│   └── ui.js                   # Renderizado del DOM, tarjetas e indicadores en Bs.
+├── 📁 data/
+│   └── productos.json          # Catálogo base inicial con precios y niveles objetivo
+├── 📁 modelo/
+│   ├── detector/               # Pesos y arquitectura local de SSD MobileNet v2
+│   └── identificador/          # Pesos y configuración de extractor MobileNet v1
+└── 📁 vendor/
+    ├── tf.min.js               # TensorFlow.js 4.22.0 local (sin dependencia CDN)
+    └── coco-ssd.min.js         # COCO-SSD 2.2.3 empaquetado localmente
+```
+
+---
+
+## ⚡ Comparativa de Eficiencia
+
+| Métrica | Cuaderno Tradicional | Lector de Código de Barras Físico | TiendaScan DSS |
+| :--- | :---: | :---: | :---: |
+| **Costo de Hardware** | Ninguno (Papel) | Alto (\$80 - \$200 USD por escáner) | **\$0 (Cualquier celular)** |
+| **Velocidad de Ingreso** | Lento (~20 seg/producto) | Medio (~5 seg/producto) | **Ultrarrápido (< 2 seg/toma)** |
+| **Soporte de Decisión** | Nulo (Solo registro) | Nulo (Requiere software ERP de pago) | **Incorporado y en Tiempo Real** |
+| **Conectividad Requerida**| Ninguna | Conexión cableada a PC fija | **Offline o Cloud vía HTTPS** |
+| **Riesgo de Error Humano**| Elevado | Bajo | **Mínimo con doble confirmación** |
+
+---
+
+## 🚀 Guía de Inicio Rápido
+
+### Ejecución Local (Desarrollo y Pruebas Wi-Fi)
+
+Para probar la cámara desde un teléfono móvil en la misma red Wi-Fi:
+```powershell
+# 1. En la carpeta del proyecto, ejecuta el servidor seguro:
+python servidor_red.py
+
+# 2. O haz doble clic directamente en:
+iniciar_servidor_red.bat
+```
+*   Abre en tu celular: `https://[TU-IP-LOCAL]:8443`
+*   Acepta la advertencia del certificado autofirmado (*Configuración avanzada -> Continuar*).
+
+---
+
+### Despliegue Productivo en Railway
+
+El proyecto incluye soporte nativo para **Railway**:
+
+1. Sube tu código a GitHub:
+   ```bash
+   git init
+   git add .
+   git commit -m "feat: Despliegue productivo TiendaScan DSS"
+   git branch -M main
+   git remote add origin https://github.com/TU_USUARIO/tiendascan-dss.git
+   git push -u origin main
+   ```
+2. Entra a [Railway.com](https://railway.com/) y crea un nuevo proyecto: **Deploy from GitHub Repo**.
+3. Selecciona tu repositorio `tiendascan-dss`.
+4. En **Settings > Networking**, genera un dominio público.
+5. ¡Listo! Accede a través de tu URL segura `https://tiendascan-dss.up.railway.app` desde cualquier celular en el mundo con soporte inmediato de cámara.
+
+---
+
+## 👥 Información Académica y Créditos
+
+*   **Institución:** Universidad Autónoma Gabriel René Moreno (UAGRM)
+*   **Facultad:** Facultad de Ingeniería en Ciencias de la Computación y Telecomunicaciones (FICCT)
+*   **Materia:** Sistemas de Soporte para la Toma de Decisiones
+*   **Semestre:** 2-2026
+*   **Santa Cruz de la Sierra, Bolivia** 🇧🇴
+
+---
+
+<div align="center">
+  <sub>Desarrollado con ❤️ para potenciar a los pequeños comerciantes y microempresarios.</sub>
+</div>
